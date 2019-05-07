@@ -12,18 +12,21 @@ jobs:
           command: |
             rustfmt --version
             cargo fmt --all -- --check
+            echo -e "\e[32mFormatting passed.\e[0m"
       - run:
           name: Nightly Test
           command: |
+            export TERM=xterm-color
             rustup run nightly rustc --version --verbose
             rustup run nightly cargo --version --verbose
-            cd baked_fluent && rustup run nightly cargo test --features full-nightly --color always -- --color always
+            cd baked_fluent && rustup run nightly cargo test --features full-nightly
       - run:
           name: Stable Test
           command: |
+            export TERM=xterm-color
             rustup run stable rustc --version --verbose
             rustup run stable cargo --version --verbose
-            cd baked_fluent && rustup run stable cargo test --features full --color always -- --color always
+            cd baked_fluent && rustup run stable cargo test --features full
       - save_cache:
           key: project-cache
           paths:
