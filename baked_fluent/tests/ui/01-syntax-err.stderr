@@ -1,0 +1,23 @@
+baked_fluent: parse errors in `en_US/hello.ftl`
+"en_US/hello.ftl" en_US/hello.ftl en_US/hello.ftl
+error[E0035]: Expected inline expression
+ --> $DIR/hello.ftl:2:13
+  |
+2 | greeting = {
+  |              ^ Expected inline expression
+  |
+-----------------------------
+baked_fluent: parse errors in `zh_HK/hello.ftl`
+"zh_HK/hello.ftl" zh_HK/hello.ftl zh_HK/hello.ftl
+error[E0034]: Unbalanced closing brace
+ --> $DIR/hello.ftl:1:11
+  |
+1 | greeting = }
+  |            ^^ Unbalanced closing brace
+  |
+-----------------------------
+error: baked_fluent: .ftl source files have errors
+ --> $DIR/01-syntax-err.rs:4:23
+  |
+4 |     #[localize(path = "../../../baked_fluent/tests/ui/i18n-syntax-err", default_locale = "en_US")]
+  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

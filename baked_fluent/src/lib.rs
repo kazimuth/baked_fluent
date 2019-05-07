@@ -73,4 +73,11 @@ mod tests {
             "localize \"bees.banana\" [(\"x\", Number(\"1\")), (\"y\", String(\"hello\")), (\"z\", String(\"there\"))]"
         );
     }
+
+    #[test]
+    fn ui() {
+        let t = trybuild::TestCases::new();
+
+        t.compile_fail("tests/ui/*.rs");
+    }
 }

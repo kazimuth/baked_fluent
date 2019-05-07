@@ -11,4 +11,5 @@ proc-macro = true
 proc-macro2 = "0.4.29"
 quote = "0.6.12"
 syn = "0.15.33"
-fluent-bundle = "0.6"
+fluent-syntax = "0.9"
+annotate-snippets = "0.5.0"

@@ -1,0 +1,5 @@
+error: expected one of `path = "..."`, `default_locale = "..."`
+ --> $DIR/03-macro-err.rs:4:60
+  |
+4 |     #[localize(path = "whatever", default_locale = "bees", invalid_thing = "banana")]
+  |                                                            ^^^^^^^^^^^^^

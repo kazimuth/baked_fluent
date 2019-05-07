@@ -3,22 +3,6 @@ use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
 use syn::{bracketed, parenthesized, token, Ident, LitStr, Token};
 
-/// A named argument to an annotation, like in #[cfg(thing = "bees")]
-///                                                  ^^^^^^^^^^^^^^ this bit
-pub struct NamedArg {
-    pub name: Ident,
-    pub value: String,
-}
-
-impl Parse for NamedArg {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse::<Ident>()?;
-        input.parse::<Token![=]>()?;
-        let value = input.parse::<LitStr>()?.value();
-        Ok(NamedArg { name, value })
-    }
-}
-
 /// An invocation of impl_localize, of the form:
 ///
 /// ```no_build
@@ -33,8 +17,8 @@ impl Parse for NamedArg {
 /// For more information, see the top-level documentation for Askama.
 pub struct ImplLocalize {
     pub name: Ident,
-    pub path: String,
-    pub default_locale: String,
+    pub path: LitStr,
+    pub default_locale: LitStr,
 }
 
 impl Parse for ImplLocalize {
@@ -74,8 +58,8 @@ impl Parse for ImplLocalize {
             }
         }
 
-        let path = path.unwrap_or("i18n".to_string());
-        let default_locale = default_locale.unwrap_or("en_US".to_string());
+        let path = path.unwrap_or(LitStr::new("i18n", ann_name.span()));
+        let default_locale = default_locale.unwrap_or(LitStr::new("en_US", ann_name.span()));
 
         // parse boilerplate `[pub] struct WhateverLocalizer(_);`
         let lookahead = input.lookahead1();
@@ -96,5 +80,21 @@ impl Parse for ImplLocalize {
             path,
             default_locale,
         })
+    }
+}
+
+/// A named argument to an annotation, like in #[cfg(thing = "bees")]
+///                                                  ^^^^^^^^^^^^^^ this bit
+pub struct NamedArg {
+    pub name: Ident,
+    pub value: LitStr,
+}
+
+impl Parse for NamedArg {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name = input.parse::<Ident>()?;
+        input.parse::<Token![=]>()?;
+        let value = input.parse::<LitStr>()?;
+        Ok(NamedArg { name, value })
     }
 }

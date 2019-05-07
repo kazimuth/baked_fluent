@@ -9,7 +9,14 @@ use std::env;
 use std::fs::{read_to_string, DirEntry};
 use std::path::{Path, PathBuf};
 
+mod error;
 mod input;
+
+macro_rules! err {
+    ($span:expr, $message:expr) => {
+        return syn::Error::new($span, $message).to_compile_error().into();
+    };
+}
 
 /// The impl_localize macro.
 #[proc_macro]
@@ -21,18 +28,33 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut root = PathBuf::from(
         &env::var("CARGO_MANIFEST_DIR").expect("baked_fluent doesn't work without cargo"),
     );
-    root.push(&ast.path);
-    let sources = collect_sources(&root);
+    root.push(&ast.path.value());
+    let sources = match collect_sources(&root) {
+        Some(sources) => sources,
+        None => err!(
+            ast.path.span(),
+            "baked_fluent: .ftl source files have errors"
+        ),
+    };
 
-    if sources.len() == 0 {
-        eprintln!("banked_fluent warning: no fluent .ftl translation files provided in i18n directory, localize() won't do much");
-    }
-
-    if let None = sources
+    let locales = sources
         .iter()
-        .find(|(locale, _, _)| locale == &ast.default_locale)
+        .map(|(locale, _, _)| locale)
+        .collect::<Vec<_>>();
+
+    if let None = locales
+        .iter()
+        .find(|locale| **locale == &ast.default_locale.value())
     {
-        panic!("baked_fluent error: no translations for default locale");
+        err!(
+            ast.default_locale.span(),
+            format!(
+                "baked_fluent: no translations for default locale {:?} \
+                 (have: {:?})",
+                ast.default_locale.value(),
+                locales
+            )
+        );
     }
 
     // setup for invocation of quote
@@ -110,8 +132,7 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 /// Find all fluent source files from a given root.
 /// Returns a vector of (locale, [locale source paths], [locale sources])
-/// Panics if any errors are present in fluent sources.
-fn collect_sources(root: &Path) -> Vec<(String, Vec<String>, Vec<String>)> {
+fn collect_sources(root: &Path) -> Option<Vec<(String, Vec<String>, Vec<String>)>> {
     assert!(root.is_dir(), "no such directory: {:?}", root);
 
     let mut result = vec![];
@@ -142,7 +163,10 @@ fn collect_sources(root: &Path) -> Vec<(String, Vec<String>, Vec<String>)> {
             let file_source = read_to_string(&ftl_file.path()).expect("failed to read .ftl file");
             let path = ftl_file.path();
 
-            had_errors |= has_errors(&path, file_source.clone());
+            had_errors |= has_errors(
+                path.strip_prefix(root).expect("prefix strip failed"),
+                file_source.clone(),
+            );
 
             locale_paths.push(path.display().to_string());
             locale_sources.push(file_source);
@@ -157,30 +181,20 @@ fn collect_sources(root: &Path) -> Vec<(String, Vec<String>, Vec<String>)> {
     }
 
     if had_errors {
-        panic!("baked_fluent error: fluent source files have errors, not continuing")
+        None
+    } else {
+        Some(result)
     }
-
-    result
 }
 
 /// If a source has errors, print them and return true.
 fn has_errors(path: &Path, source: String) -> bool {
-    match fluent_bundle::FluentResource::try_new(source.clone()) {
+    match fluent_syntax::parser::parse(&source) {
         Ok(_) => false,
         Err((_, errs)) => {
-            eprintln!(
-                "baked_fluent error: fluent parse errors in `{}`",
-                path.display()
-            );
+            eprintln!("baked_fluent: parse errors in `{}`", path.display());
             for err in errs {
-                let (line, col) = linecol(&source, err.pos.0);
-                eprintln!(
-                    "baked_fluent error:     {}:{}:{}: {:?}",
-                    path.display(),
-                    line,
-                    col,
-                    err.kind
-                );
+                error::log_error(path, &source, &err);
             }
             true
         }
@@ -198,23 +212,4 @@ fn children(path: &Path) -> impl Iterator<Item = DirEntry> {
     results.sort_by_key(DirEntry::file_name); // keep builds deterministic
 
     results.into_iter()
-}
-
-/// Given a source string and an offset, return a line and column (both 1-based.)
-fn linecol(src: &str, offset: usize) -> (usize, usize) {
-    let mut line = 1;
-    let mut col = 1;
-    for (i, c) in src.chars().enumerate() {
-        if i == offset {
-            return (line, col);
-        }
-
-        col += 1;
-        if c == '\n' {
-            col = 0;
-            line += 1;
-        }
-    }
-
-    (line, col)
 }

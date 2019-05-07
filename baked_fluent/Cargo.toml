@@ -16,6 +16,7 @@ baked_fluent_codegen = { path = "../baked_fluent_codegen"}
 
 [dev-dependencies]
 criterion = "0.2.1"
+trybuild = "1.0.3"
 
 [[bench]]
 name = "bench"
