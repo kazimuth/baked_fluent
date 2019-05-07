@@ -29,7 +29,7 @@ pub trait Localize: Sized {
 
 #[macro_export]
 macro_rules! localize {
-    ($localizer:expr, $message:ident $(. $attr:ident)*, $($key:ident = $val:expr),*) => {
+    ($localizer:expr, $message:ident $(. $attr:ident)* $(, $key:ident = $val:expr)* $(,)*) => {
         $localizer.localize(concat!(stringify!($message), $(".", stringify!($attr)),*), &[
             $((stringify!($key), &$val.into())),*
         ])
