@@ -66,5 +66,4 @@ $ curl -H 'Accept-Language: es' http://localhost:8088/Jamie/0
 ¡Hola, Jamie! Todavía no tienes amigos 😞
 $ curl -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8088/Jamie/1
 Hello, Jamie! You have 1 friend.
-
 ```
