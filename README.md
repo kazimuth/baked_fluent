@@ -67,3 +67,47 @@ $ curl -H 'Accept-Language: es' http://localhost:8088/Jamie/0
 $ curl -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8088/Jamie/1
 Hello, Jamie! You have 1 friend.
 ```
+
+## FAQ
+
+#### Is this gettext?
+
+No, Project Fluent is an alternative API that does similar things to `gettext` but is designed to support a broader range of languages easily. If you really want gettext, [check crates.io](https://crates.io/search?q=gettext).
+
+#### How does the fluent language work?
+
+See the [guide](https://projectfluent.org/fluent/guide/) and the [other docs](https://github.com/projectfluent/fluent/wiki).
+
+#### Can I use this crate from WebAssembly?
+
+No! Don't do that. This crate bakes all translations into the output, it will significantly swell your wasm module sizes. Instead, use [fluent-bundle](https://crates.io/crates/fluent-locale) directly, and load your translations from a static file server. (There's room for a small utility crate that does this, if you feel like implementing one.) There's also [fluent-js](https://github.com/projectfluent/fluent.js).
+
+You can, however, use this crate to negotiate a locale chain. Simply create a `Localize` instance as normal and then call `Localize::get_locale_chain()` to get the list of locales used by the instance. (You can also use [fluent-locale](https://crates.io/crates/fluent-locale) to do this on the frontend.)
+
+#### Why isn't framework [Z] supported?
+
+There's a lot of web frameworks / templating libraries. If you want to improve support for one of them, make a PR! Also, the `Localize` API is simple enough that it shouldn't be hard to implement on your own.
+
+#### How fast is this crate?
+
+```sh
+# a simple locale negotiation:
+negotiate-fast          time:   [4.5704 us 4.6237 us 4.6789 us]
+# a locale negotiation with a long chain:
+negotiate-slow          time:   [24.855 us 25.130 us 25.443 us]
+# localizing a message with no arguments:
+localize-simple         time:   [890.92 ns 901.70 ns 912.54 ns]
+# localizing a message with a few arguments and a conditional:
+localize-moderate       time:   [4.1089 us 4.1585 us 4.2078 us]
+```
+
+On an intel core i5 from 2014.
+
+Performance mostly depends on the underlying `fluent-rs` implementation.
+We accept performance-related PRs.
+
+Note: this project loads all available translations into memory on the first call to `Localize::new`. This shouldn't add significant memory overhead, unless you have a _lot_ of translations.
+
+#### Why doesn't this crate use #[derive(Localize)] instead of this weird macro thing?
+
+It needs to control the contents of the `Localize` struct, so that won't work.

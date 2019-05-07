@@ -23,7 +23,7 @@ pub trait Localize: Sized {
     /// Whether a localizer has a particular message available.
     fn has_message(&self, message_id: &str) -> bool;
 
-    /// Default locale of this localizer.
+    /// Default locale of this Localize implementation.
     fn default_locale() -> &'static str;
 }
 

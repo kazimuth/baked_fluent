@@ -2,7 +2,7 @@ use baked_fluent::{impl_localize, localize, Localize};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 impl_localize! {
-    #[localize(path = "test-i18n", default_locale = "en_US")]
+    #[localize(path = "tests/i18n", default_locale = "en_US")]
     struct TestLocalizer(_);
 }
 
