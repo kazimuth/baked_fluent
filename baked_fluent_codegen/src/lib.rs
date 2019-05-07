@@ -18,20 +18,21 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = syn::parse_macro_input!(item as input::ImplLocalize);
 
     // load all source files.
-    let mut root =
-        PathBuf::from(&env::var("CARGO_MANIFEST_DIR").expect("askama doesn't work without cargo"));
+    let mut root = PathBuf::from(
+        &env::var("CARGO_MANIFEST_DIR").expect("baked_fluent doesn't work without cargo"),
+    );
     root.push(&ast.path);
     let sources = collect_sources(&root);
 
     if sources.len() == 0 {
-        eprintln!("askama i18n warning: no fluent .ftl translation files provided in i18n directory, localize() won't do much");
+        eprintln!("banked_fluent warning: no fluent .ftl translation files provided in i18n directory, localize() won't do much");
     }
 
     if let None = sources
         .iter()
         .find(|(locale, _, _)| locale == &ast.default_locale)
     {
-        panic!("askama i18n error: no code for default locale");
+        panic!("baked_fluent error: no translations for default locale");
     }
 
     // setup for invocation of quote
@@ -47,10 +48,10 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // generated code
     (quote! {
         /// Internationalization support. Automatically generated from files in the `i18n` folder.
-        /// For usage, see the docs of the askama::Localize trait.
-        pub struct #name(Box<[askama::i18n::macro_impl::Locale]>);
+        /// For usage, see the docs of the baked_fluent::Localize trait.
+        pub struct #name(Box<[&'static str]>);
 
-        impl ::askama::Localize for #name {
+        impl ::baked_fluent::Localize for #name {
 
             #[inline(never)]
             fn new(locale: &[&str], accept_language: Option<&str>) -> Self {
@@ -64,8 +65,8 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             #[inline]
             fn localize(&self,
                 message: &str,
-                args: &[(&str, &askama::i18n::I18nValue)])
-                    -> ::askama::Result<String> {
+                args: &[(&str, &::baked_fluent::runtime::I18nValue)])
+                    -> ::baked_fluent::Result<String> {
                     __i18n_hidden::STATIC_PARSER.localize(&self.0, message, args)
             }
 
@@ -80,9 +81,9 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
         #[doc(hidden)]
         mod __i18n_hidden {
-            use ::askama::i18n_runtime::{
-                StaticParser, Resources, Locale,
-                Sources, lazy_static, I18nValue;
+            use ::baked_fluent::runtime::{
+                StaticParser, Resources,
+                Sources, lazy_static, I18nValue
             };
 
             /// All sources compiled into the executable.
@@ -94,7 +95,7 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             lazy_static! {
                 static ref RESOURCES: Resources = Resources::new(SOURCES);
                 pub static ref STATIC_PARSER: StaticParser<'static> =
-                    StaticParser::new(&RESOURCES, Locale(#default_locale));
+                    StaticParser::new(&RESOURCES, #default_locale);
             }
 
             /// Necessary to get rustc to re-compile this proc macro if the included sources change.
@@ -156,7 +157,7 @@ fn collect_sources(root: &Path) -> Vec<(String, Vec<String>, Vec<String>)> {
     }
 
     if had_errors {
-        panic!("askama i18n error: fluent source files have errors, not continuing")
+        panic!("baked_fluent error: fluent source files have errors, not continuing")
     }
 
     result
@@ -168,13 +169,13 @@ fn has_errors(path: &Path, source: String) -> bool {
         Ok(_) => false,
         Err((_, errs)) => {
             eprintln!(
-                "askama i18n error: fluent parse errors in `{}`",
+                "baked_fluent error: fluent parse errors in `{}`",
                 path.display()
             );
             for err in errs {
                 let (line, col) = linecol(&source, err.pos.0);
                 eprintln!(
-                    "askama i18n error:     {}:{}:{}: {:?}",
+                    "baked_fluent error:     {}:{}:{}: {:?}",
                     path.display(),
                     line,
                     col,

@@ -36,28 +36,29 @@ macro_rules! localize {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Error(String);
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+pub use baked_fluent_codegen::impl_localize;
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    struct T {}
+    struct T;
     impl Localize for T {
-        fn new(user_locales: &[&str], accept_language: Option<&str>) -> Self {
-            T {}
+        fn new(_: &[&str], _: Option<&str>) -> Self {
+            T
         }
         fn localize(
             &self,
             message_id: &str,
             args: &[(&str, &runtime::I18nValue)],
         ) -> Result<String> {
-            println!("localize {:?} {:?}", message_id, args);
-            Ok("bees".into())
+            Ok(format!("localize {:?} {:?}", message_id, args))
         }
-        fn has_message(&self, message_id: &str) -> bool {
+        fn has_message(&self, _: &str) -> bool {
             true
         }
         fn default_locale() -> &'static str {
@@ -65,9 +66,11 @@ mod tests {
         }
     }
     #[test]
-    fn test() {
-        let t = T {};
-        localize!(t, bees.banana, x = 1, y = "hello", z = "fuck".to_string()).unwrap();
-        panic!();
+    fn localize_macro() {
+        let t = T;
+        assert_eq!(
+            localize!(t, bees.banana, x = 1, y = "hello", z = "there".to_string()).unwrap(),
+            "localize \"bees.banana\" [(\"x\", Number(\"1\")), (\"y\", String(\"hello\")), (\"z\", String(\"there\"))]"
+        );
     }
 }

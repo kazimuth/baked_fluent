@@ -7,6 +7,7 @@ A system for dead-easy i18n in rust. Bakes [Fluent](https://projectfluent.org) s
 ## Example usage (with `actix-web`)
 
 `src/main.rs`:
+
 ```rust
 
 use actix_web::{server, App, HttpRequest, Responder};
@@ -15,7 +16,7 @@ use baked_fluent::{localize, impl_localize};
 
 // Create a struct called `Localizer` implementing `baked_fluent::Localize`
 impl_localize! {
-    #[path = "i18n", default_locale = "en_US"]
+    #[localize(path = "i18n", default_locale = "en_US")]
     pub struct Localizer(_);
 }
 
@@ -30,8 +31,8 @@ fn main() {
 }
 ```
 
-
 `i18n/en_US/hello.ftl`:
+
 ```ftl
 # english translations
 greeting = Hello { $name }! { $friends ->
@@ -42,6 +43,7 @@ greeting = Hello { $name }! { $friends ->
 ```
 
 `i18n/es_MX/hello.ftl`:
+
 ```ftl
 # traducciones a español
 greeting = ¡Hola, { $name }! { $friends ->
