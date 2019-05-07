@@ -13,17 +13,17 @@ jobs:
             rustfmt --version
             cargo fmt --all -- --check
       - run:
-          name: Nightly Build
+          name: Nightly Test
           command: |
             rustup run nightly rustc --version --verbose
             rustup run nightly cargo --version --verbose
-            cd baked_fluent && rustup run nightly cargo test --features full-nightly
+            cd baked_fluent && rustup run nightly cargo test --features full-nightly --color always
       - run:
-          name: Stable Build
+          name: Stable Test
           command: |
             rustup run stable rustc --version --verbose
             rustup run stable cargo --version --verbose
-            cd baked_fluent && rustup run stable cargo test --features full
+            cd baked_fluent && rustup run stable cargo test --features full --color always
       - save_cache:
           key: project-cache
           paths:

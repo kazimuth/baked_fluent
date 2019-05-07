@@ -1,4 +1,4 @@
-# `baked_fluent`
+# baked_fluent [![CircleCI](https://circleci.com/gh/kazimuth/baked_fluent.svg?style=svg)](https://circleci.com/gh/kazimuth/baked_fluent)
 
 **THIS CRATE IS NOT YET FUNCTIONAL.** (give it a few days until a public beta.)
 
