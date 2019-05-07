@@ -1,33 +1,10 @@
-# baked_fluent
+# `baked_fluent`
 
 A system for dead-easy i18n in rust. Bakes [Fluent](https://projectfluent.org) source files into executables and provides an easy API to use them. Intended for server-side use; integrates with most [web frameworks](#frameworks) and [templating libraries](#templating).
 
-Example (with [`actix-web`](https://actix.rs/)):
-
-`i18n/en_US/hello.ftl`:
-
-```ftl
-# english translations
-greeting = Hello { $name }! { $friends ->
-    [one] You have a friend!
-    [zero] You have no friends yet 😞
-   *[other] You have {$friends} friends.
-}
-```
-
-`i18n/es_MX/hello.ftl`:
-
-```ftl
-# traducciones a español
-greeting = ¡Hola, { $name }! { $friends ->
-    [one] ¡Tienes un amigo!
-    [zero] Todavía no tienes amigos 😞
-   *[other] Tienes {$friends} amigos.
-}
-```
+## Example usage (with `actix-web`)
 
 `src/main.rs`:
-
 ```rust
 
 use actix_web::{server, App, HttpRequest, Responder};
@@ -48,6 +25,27 @@ fn main() {
     let app = App::new().resource(
         "/{name}/{friend_count}",                    // <- define path parameters
         |r| r.method(http::Method::GET).with(index));  // <- use `with` extractor
+}
+```
+
+
+`i18n/en_US/hello.ftl`:
+```ftl
+# english translations
+greeting = Hello { $name }! { $friends ->
+    [one] You have a friend!
+    [zero] You have no friends yet 😞
+   *[other] You have {$friends} friends.
+}
+```
+
+`i18n/es_MX/hello.ftl`:
+```ftl
+# traducciones a español
+greeting = ¡Hola, { $name }! { $friends ->
+    [one] ¡Tienes un amigo!
+    [zero] Todavía no tienes amigos 😞
+   *[other] Tienes {$friends} amigos.
 }
 ```
 
