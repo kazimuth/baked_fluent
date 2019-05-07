@@ -17,13 +17,13 @@ jobs:
           command: |
             rustup run nightly rustc --version --verbose
             rustup run nightly cargo --version --verbose
-            cd baked_fluent && rustup run nightly cargo test --features full-nightly --color always
+            cd baked_fluent && rustup run nightly cargo test --features full-nightly --color always -- --color always
       - run:
           name: Stable Test
           command: |
             rustup run stable rustc --version --verbose
             rustup run stable cargo --version --verbose
-            cd baked_fluent && rustup run stable cargo test --features full --color always
+            cd baked_fluent && rustup run stable cargo test --features full --color always -- --color always
       - save_cache:
           key: project-cache
           paths:
