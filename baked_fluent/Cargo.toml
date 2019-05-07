@@ -1,0 +1,11 @@
+[package]
+authors = ["James Gilles <jhgilles@mit.edu>"]
+edition = "2018"
+name = "baked_fluent"
+version = "0.1.0"
+
+[dependencies]
+fluent-bundle = "0.6.0"
+fluent-locale = "0.4.1"
+lazy_static = "1.3.0"
+baked_fluent_codegen = { path = "../baked_fluent_codegen"}

@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "baked_fluent",
+    "baked_fluent_codegen"
+]
