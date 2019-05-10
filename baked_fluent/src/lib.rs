@@ -41,6 +41,9 @@ pub trait Localize: Sized {
     /// Whether a localizer has a particular message available.
     fn has_message(&self, message_id: &'static str) -> bool;
 
+    /// Get the chain of locales this localizer looks up messages in.
+    fn locale_chain(&self) -> &[&'static str];
+
     /// Default locale of this Localize implementation.
     fn default_locale() -> &'static str;
 }
@@ -106,6 +109,11 @@ mod tests {
         fn has_message(&self, _: &str) -> bool {
             true
         }
+        /// Get the chain of locales this localizer looks up messages in.
+        fn locale_chain(&self) -> &[&'static str] {
+            &["en-US"]
+        }
+
         fn default_locale() -> &'static str {
             "en_US"
         }

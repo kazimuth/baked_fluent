@@ -97,6 +97,10 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 __i18n_hidden::STATIC_PARSER.has_message(&self.0, message)
             }
 
+            fn locale_chain(&self) -> &[&'static str] {
+                &self.0
+            }
+
             fn default_locale() -> &'static str {
                 #default_locale
             }
