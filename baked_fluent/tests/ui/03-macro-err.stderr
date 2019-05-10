@@ -1,5 +1,5 @@
-error: expected one of `path = "..."`, `default_locale = "..."`
- --> $DIR/03-macro-err.rs:4:60
+error: unexpected attribute `invalid_thing` (allowed: path, default_locale)
+ --> $DIR/03-macro-err.rs:6:7
   |
-4 |     #[localize(path = "whatever", default_locale = "bees", invalid_thing = "banana")]
-  |                                                            ^^^^^^^^^^^^^
+6 |     #[invalid_thing("banana")]
+  |       ^^^^^^^^^^^^^

@@ -16,13 +16,6 @@ pub fn log_error(path: &Path, source: &str, err: &ParserError) {
         (err.pos.0, err.pos.1)
     };
 
-    eprintln!(
-        "{:?} {} {}",
-        path,
-        path.display(),
-        path.display().to_string()
-    );
-
     let (id, desc) = get_error_info(&err.kind);
     let end_pos = cmp::min(err.pos.1, slice.1);
     let snippet = Snippet {

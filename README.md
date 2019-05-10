@@ -16,7 +16,8 @@ use baked_fluent::{localize, impl_localize};
 
 // Create a struct called `Localizer` implementing `baked_fluent::Localize`
 impl_localize! {
-    #[localize(path = "i18n", default_locale = "en_US")]
+    #[path("i18n")]
+    #[default_locale("en_US")]
     pub struct Localizer(_);
 }
 

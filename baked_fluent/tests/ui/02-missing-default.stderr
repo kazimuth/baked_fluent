@@ -1,5 +1,5 @@
 error: baked_fluent: no translations for default locale "xy_ZW" (have: ["en_US", "es_MX"])
- --> $DIR/02-missing-default.rs:4:95
+ --> $DIR/02-missing-default.rs:5:22
   |
-4 |     #[localize(path = "../../../baked_fluent/tests/ui/i18n-missing-default", default_locale = "xy_ZW")]
-  |                                                                                               ^^^^^^^
+5 |     #[default_locale("xy_ZW")]
+  |                      ^^^^^^^
