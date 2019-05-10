@@ -24,7 +24,19 @@ pub trait Localize: Sized {
         &self,
         message_id: &'static str,
         args: &[(&str, &runtime::I18nValue)],
-    ) -> Result<String>;
+    ) -> Result<String> {
+        let mut result = String::new();
+        self.localize_into(&mut result, message_id, args)?;
+        Ok(result)
+    }
+
+    /// Localize a particular message into a std::fmt::Write.
+    fn localize_into<W: std::fmt::Write>(
+        &self,
+        writer: &mut W,
+        message_id: &'static str,
+        args: &[(&str, &runtime::I18nValue)],
+    ) -> Result<()>;
 
     /// Whether a localizer has a particular message available.
     fn has_message(&self, message_id: &'static str) -> bool;
@@ -42,6 +54,15 @@ macro_rules! localize {
     };
 }
 
+#[macro_export]
+macro_rules! localize_into {
+    ($localizer:expr, $writer:expr, $message:ident $(. $attr:ident)* $(, $key:ident = $val:expr)* $(,)*) => {
+        $localizer.localize_into($writer, concat!(stringify!($message), $(".", stringify!($attr)),*), &[
+            $((stringify!($key), &$val.into())),*
+        ])
+    };
+}
+
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(
@@ -52,8 +73,13 @@ pub enum Error {
         message: &'static str,
         locale_chain: Box<[&'static str]>,
     },
-    #[fail(display = "io error: {}", _0)]
-    Io(std::io::Error),
+    #[fail(display = "fmt error: {}", _0)]
+    Fmt(#[cause] std::fmt::Error),
+}
+impl From<std::fmt::Error> for Error {
+    fn from(err: std::fmt::Error) -> Self {
+        Error::Fmt(err)
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -68,12 +94,14 @@ mod tests {
         fn new(_: &[&str], _: Option<&str>) -> Self {
             T
         }
-        fn localize(
+        fn localize_into<W: std::fmt::Write>(
             &self,
+            writer: &mut W,
             message_id: &str,
             args: &[(&str, &runtime::I18nValue)],
-        ) -> Result<String> {
-            Ok(format!("localize {:?} {:?}", message_id, args))
+        ) -> Result<()> {
+            write!(writer, "localize {:?} {:?}", message_id, args)?;
+            Ok(())
         }
         fn has_message(&self, _: &str) -> bool {
             true
@@ -83,12 +111,28 @@ mod tests {
         }
     }
     #[test]
-    fn localize_macro() {
+    fn localize_macro() -> Result<()> {
         let t = T;
         assert_eq!(
-            localize!(t, bees.banana, x = 1, y = "hello", z = "there".to_string()).unwrap(),
+            localize!(t, bees.banana, x = 1, y = "hello", z = "there".to_string())?,
             "localize \"bees.banana\" [(\"x\", Number(\"1\")), (\"y\", String(\"hello\")), (\"z\", String(\"there\"))]"
         );
+        let mut result = String::new();
+
+        localize_into!(
+            t,
+            &mut result,
+            bees.banana,
+            x = 1,
+            y = "hello",
+            z = "there".to_string()
+        )?;
+        assert_eq!(
+            result,
+            "localize \"bees.banana\" [(\"x\", Number(\"1\")), (\"y\", String(\"hello\")), (\"z\", String(\"there\"))]"
+        );
+
+        Ok(())
     }
 
     #[test]

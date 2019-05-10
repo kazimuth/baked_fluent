@@ -117,12 +117,13 @@ impl<'a> StaticParser<'a> {
     /// * `locale_chain`: a list of locales, in descending order of preference
     /// * `message`: a message ID
     /// * `args`: a slice of arguments to pass to Fluent.
-    pub fn localize(
+    pub fn localize_into<W: std::fmt::Write>(
         &self,
+        writer: &mut W,
         locale_chain: &[&'static str],
         message: &'static str,
         args: &[(&str, &FluentValue)],
-    ) -> Result<String> {
+    ) -> Result<()> {
         let args = if args.len() == 0 {
             None
         } else {
@@ -135,13 +136,15 @@ impl<'a> StaticParser<'a> {
                 .bundles
                 .get(locale)
                 .expect("invariant violated: available locales should have matching bundles");
+
             // this API is weirdly awful;
             // format returns Option<(String, Vec<FluentError>)>
             // which we have to cope with
             let result = bundle.format(message, args);
 
             if let Some((result, _errs)) = result {
-                return Ok(result);
+                write!(writer, "{}", result)?;
+                return Ok(());
 
                 // TODO: warn on errors here?
             }
@@ -237,28 +240,28 @@ goodbye = Adiós.
         let hours = FluentValue::from(190321.31);
         let args = &[("name", &name), ("hours", &hours)][..];
 
-        assert_eq!(
-            bundles.localize(&["en_US"], "greeting", args)?,
-            "Hello, Jamie! You are 190321.31 hours old."
-        );
-        assert_eq!(
-            bundles.localize(&["es_MX"], "greeting", args)?,
-            "¡Hola, Jamie! Tienes 190321.31 horas."
-        );
-        assert_eq!(
-            bundles.localize(&["de_DE"], "greeting", args)?,
-            "Hallo Jamie! Du bist 190321.31 Stunden alt."
-        );
+        let mut result = String::new();
+        bundles.localize_into(&mut result, &["en_US"], "greeting", args)?;
+        assert_eq!(result, "Hello, Jamie! You are 190321.31 hours old.");
+        result.clear();
 
+        bundles.localize_into(&mut result, &["es_MX"], "greeting", args)?;
+        assert_eq!(result, "¡Hola, Jamie! Tienes 190321.31 horas.");
+        result.clear();
+
+        bundles.localize_into(&mut result, &["de_DE"], "greeting", args)?;
+        assert_eq!(result, "Hallo Jamie! Du bist 190321.31 Stunden alt.");
+        result.clear();
+
+        bundles.localize_into(&mut result, &["de_DE", "es_MX", "en_US"], "goodbye", &[])?;
         // missing messages should fall back to first available
-        assert_eq!(
-            bundles.localize(&["de_DE", "es_MX", "en_US"], "goodbye", &[])?,
-            "Adiós."
-        );
+        assert_eq!(result, "Adiós.");
+        result.clear();
 
-        if let Ok(_) = bundles.localize(&["en_US"], "bananas", &[]) {
+        if let Ok(_) = bundles.localize_into(&mut result, &["en_US"], "bananas", &[]) {
             panic!("Should return Err on missing message");
         }
+        result.clear();
 
         Ok(())
     }

@@ -74,22 +74,23 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
         pub struct #name(Box<[&'static str]>);
 
         impl ::baked_fluent::Localize for #name {
-
             #[inline(never)]
             fn new(locale: &[&str], accept_language: Option<&str>) -> Self {
                 #name(
                     __i18n_hidden::STATIC_PARSER
                         .create_locale_chain(locale, accept_language)
-                        .into_boxed_slice()
+                        .into_boxed_slice(),
                 )
             }
 
             #[inline]
-            fn localize(&self,
+            fn localize_into<W: std::fmt::Write>(
+                &self,
+                writer: &mut W,
                 message: &'static str,
-                args: &[(&str, &::baked_fluent::runtime::I18nValue)])
-                    -> ::baked_fluent::Result<String> {
-                    __i18n_hidden::STATIC_PARSER.localize(&self.0, message, args)
+                args: &[(&str, &::baked_fluent::runtime::I18nValue)],
+            ) -> ::baked_fluent::Result<()> {
+                __i18n_hidden::STATIC_PARSER.localize_into(writer, &self.0, message, args)
             }
 
             fn has_message(&self, message: &'static str) -> bool {
@@ -103,14 +104,11 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
         #[doc(hidden)]
         mod __i18n_hidden {
-            use ::baked_fluent::runtime::{
-                StaticParser, Resources,
-                Sources, lazy_static, I18nValue
-            };
+            use baked_fluent::runtime::{lazy_static, I18nValue, Resources, Sources, StaticParser};
 
             /// All sources compiled into the executable.
             pub const SOURCES: Sources = &[
-                #(#sources),*
+                 #(#sources),*
             ];
 
             /// The parsed sources.
