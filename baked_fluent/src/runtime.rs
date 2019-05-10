@@ -120,7 +120,7 @@ impl<'a> StaticParser<'a> {
     pub fn localize(
         &self,
         locale_chain: &[&'static str],
-        message: &str,
+        message: &'static str,
         args: &[(&str, &FluentValue)],
     ) -> Result<String> {
         let args = if args.len() == 0 {
@@ -147,10 +147,10 @@ impl<'a> StaticParser<'a> {
             }
         }
         // nowhere to fall back to
-        Err(Error(format!(
-            "no non-erroring translations for message {} in locale chain {:?}",
-            message, locale_chain
-        )))
+        Err(Error::NoTranslations {
+            message,
+            locale_chain: locale_chain.to_vec().into_boxed_slice(),
+        })
     }
 
     pub fn has_message(&self, locale_chain: &[&'static str], message: &str) -> bool {

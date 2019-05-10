@@ -1,3 +1,5 @@
+use failure::Fail;
+
 pub mod runtime;
 
 /// `Localize` trait; can be included in templates to allow using the `localize` filter.
@@ -18,10 +20,14 @@ pub trait Localize: Sized {
     fn new(user_locales: &[&str], accept_language: Option<&str>) -> Self;
 
     /// Localize a particular message.
-    fn localize(&self, message_id: &str, args: &[(&str, &runtime::I18nValue)]) -> Result<String>;
+    fn localize(
+        &self,
+        message_id: &'static str,
+        args: &[(&str, &runtime::I18nValue)],
+    ) -> Result<String>;
 
     /// Whether a localizer has a particular message available.
-    fn has_message(&self, message_id: &str) -> bool;
+    fn has_message(&self, message_id: &'static str) -> bool;
 
     /// Default locale of this Localize implementation.
     fn default_locale() -> &'static str;
@@ -36,8 +42,19 @@ macro_rules! localize {
     };
 }
 
-#[derive(Debug, PartialEq)]
-pub struct Error(String);
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(
+        display = "no non-erroring translations for message {} in locale chain {:?}",
+        message, locale_chain
+    )]
+    NoTranslations {
+        message: &'static str,
+        locale_chain: Box<[&'static str]>,
+    },
+    #[fail(display = "io error: {}", _0)]
+    Io(std::io::Error),
+}
 
 pub type Result<T> = std::result::Result<T, Error>;
 
