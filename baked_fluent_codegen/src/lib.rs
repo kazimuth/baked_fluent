@@ -4,6 +4,7 @@
 
 extern crate proc_macro;
 
+use proc_macro2::Ident;
 use quote::quote;
 use std::env;
 use std::fs::{read_to_string, DirEntry};
@@ -66,6 +67,11 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             (#locale, &[#(#sources)*])
         }
     });
+    let actix = ast
+        .actix
+        .as_ref()
+        .map(|a| gen_actix(a, name.clone()))
+        .unwrap_or(quote!());
 
     // generated code
     (quote! {
@@ -105,6 +111,8 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 #default_locale
             }
         }
+
+        #actix
 
         #[doc(hidden)]
         mod __i18n_hidden {
@@ -199,6 +207,31 @@ fn has_errors(path: &Path, source: String) -> bool {
                 error::log_error(path, &source, &err);
             }
             true
+        }
+    }
+}
+
+fn gen_actix(opts: &input::ActixOpts, name: Ident) -> proc_macro2::TokenStream {
+    if let Some(ref _loc) = opts.custom_user_locale {
+        unimplemented!()
+    } else {
+        quote! {
+        impl ::actix_web::FromRequest for #name {
+            type Error = ::actix_web::error::Error;
+            type Future = ::std::result::Result<Self, Self::Error>;
+            type Config = ();
+            fn from_request(
+                req: &::actix_web::HttpRequest,
+                _: &mut actix_web::dev::Payload,
+            ) -> Self::Future {
+                let header = req
+                    .headers()
+                    .get("Accept-Language")
+                    .map(|h| h.to_str().unwrap_or(""))
+                    .unwrap_or("");
+                Ok(::baked_fluent::Localize::new(&[], Some(header)))
+            }
+        }
         }
     }
 }

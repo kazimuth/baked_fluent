@@ -1,5 +1,3 @@
-use failure::Fail;
-
 pub mod runtime;
 
 /// `Localize` trait; can be included in templates to allow using the `localize` filter.
@@ -51,7 +49,7 @@ pub trait Localize: Sized {
 #[macro_export]
 macro_rules! localize {
     ($localizer:expr, $message:ident $(. $attr:ident)* $(, $key:ident = $val:expr)* $(,)*) => {
-        $localizer.localize(concat!(stringify!($message), $(".", stringify!($attr)),*), &[
+        $crate::Localize::localize(&$localizer, concat!(stringify!($message), $(".", stringify!($attr)),*), &[
             $((stringify!($key), &$val.into())),*
         ])
     };
@@ -60,28 +58,52 @@ macro_rules! localize {
 #[macro_export]
 macro_rules! localize_into {
     ($localizer:expr, $writer:expr, $message:ident $(. $attr:ident)* $(, $key:ident = $val:expr)* $(,)*) => {
-        $localizer.localize_into($writer, concat!(stringify!($message), $(".", stringify!($attr)),*), &[
+        $crate::Localize::localize_into(&$localizer, $writer, concat!(stringify!($message), $(".", stringify!($attr)),*), &[
             $((stringify!($key), &$val.into())),*
         ])
     };
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Clone)]
 pub enum Error {
-    #[fail(
-        display = "no non-erroring translations for message {} in locale chain {:?}",
-        message, locale_chain
-    )]
     NoTranslations {
         message: &'static str,
         locale_chain: Box<[&'static str]>,
     },
-    #[fail(display = "fmt error: {}", _0)]
-    Fmt(#[cause] std::fmt::Error),
+    Fmt(std::fmt::Error),
 }
 impl From<std::fmt::Error> for Error {
     fn from(err: std::fmt::Error) -> Self {
         Error::Fmt(err)
+    }
+}
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::NoTranslations { .. } => "no translations",
+            Error::Fmt(..) => "formatter error",
+        }
+    }
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match *self {
+            Error::Fmt(ref e) => Some(e),
+            _ => None,
+        }
+    }
+}
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Error::NoTranslations {
+                ref message,
+                ref locale_chain,
+            } => write!(
+                f,
+                "no non-erroring translations for message {} in locale chain {:?}",
+                message, locale_chain
+            ),
+            Error::Fmt(ref e) => write!(f, "fmt error: {}", e),
+        }
     }
 }
 

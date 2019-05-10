@@ -10,26 +10,6 @@ A system for dead-easy i18n in rust. Bakes [Fluent](https://projectfluent.org) s
 
 ```rust
 
-use actix_web::{server, App, HttpRequest, Responder};
-
-use baked_fluent::{localize, impl_localize};
-
-// Create a struct called `Localizer` implementing `baked_fluent::Localize`
-impl_localize! {
-    #[path("i18n")]
-    #[default_locale("en_US")]
-    pub struct Localizer(_);
-}
-
-fn index((loc, name, friend_count): (Localizer, Path<String>, Path<i32>)) -> String {
-    localize!(loc, greeting, name=name, friends=friend_count)
-}
-
-fn main() {
-    let app = App::new().resource(
-        "/{name}/{friend_count}",                    // <- define path parameters
-        |r| r.method(http::Method::GET).with(index));  // <- use `with` extractor
-}
 ```
 
 `i18n/en_US/hello.ftl`:
