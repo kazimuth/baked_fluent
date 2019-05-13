@@ -40,7 +40,7 @@ fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> Result<String>
 
 fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new().service(web::resource("/{name}/{friend_count}/").to(index)))
-        .bind("localhost:8088")?
+        .bind("localhost:8080")?
         .run()
 }
 ```
@@ -72,13 +72,13 @@ In the terminal:
 ```sh
 $ cargo run &
 ...
-$ curl -s -H 'Accept-Language: en' http://localhost:8088/Jamie/12
+$ curl -s -H 'Accept-Language: en' http://localhost:8080/Jamie/12
 Hello, Jamie! You have 12 friends.
-$ curl -s -H 'Accept-Language: es' http://localhost:8088/Jamie/12
+$ curl -s -H 'Accept-Language: es' http://localhost:8080/Jamie/12
 ¡Hola, Jamie! Tienes 12 amigos.
-$ curl -s -H 'Accept-Language: es' http://localhost:8088/Jamie/0
+$ curl -s -H 'Accept-Language: es' http://localhost:8080/Jamie/0
 ¡Hola, Jamie! Todavía no tienes amigos 😞
-$ curl -s -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8088/Jamie/1
+$ curl -s -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8080/Jamie/1
 Hello, Jamie! You have 1 friend.
 ```
 

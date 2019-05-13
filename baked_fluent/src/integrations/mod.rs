@@ -4,5 +4,7 @@
 #[cfg(feature = "with-actix")]
 pub mod actix;
 
-#[cfg(feature = "with-maud")]
+#[cfg(feature = "with-rouille")]
+pub mod rouille;
+
 pub mod maud;
