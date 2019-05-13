@@ -6,11 +6,10 @@ version = "0.1.0"
 
 [features]
 default = []
-full-nightly = ["full", "with-maud"]
+full-nightly = ["full"]
 full = ["with-actix"]
 
 with-actix = ["actix-web", "baked_fluent_codegen/with-actix"]
-with-maud = ["maud"]
 
 [dependencies]
 fluent-bundle = "0.6.0"
