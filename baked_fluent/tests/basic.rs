@@ -15,4 +15,8 @@ fn init() {
         localize!(loc, greeting, name = "Jamie", friends = 5).unwrap(),
         "Hello Jamie! You have 5 friends."
     );
+    assert_eq!(
+        localize!(loc, greeting, name = "Jamie", friends = 0).unwrap(),
+        "Hello Jamie! You have 0 friends."
+    );
 }

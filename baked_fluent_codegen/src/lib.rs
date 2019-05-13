@@ -20,6 +20,30 @@ macro_rules! err {
 }
 
 /// The impl_localize macro.
+/// Generates a struct that implements `baked_fluent::Localize`, sort of like a custom derive
+/// except you don't get to see inside the struct ;)
+///
+/// Input syntax:
+/// ```
+/// impl_localize! {
+///     // various configuration options, all optional:
+///
+///     // Where to look for translations.
+///     // Relative to the directory your Cargo.toml is in.
+///     #[path("path/to/i18n/folder")]
+///
+///     // The locale to fall back to if no others can be chosen.
+///     #[default_locale("xy_ZW")]
+///
+///     // Disable auto-implementation of FromRequest trait (for actix, rocket.)
+///     // This allows you to implement FromRequest yourself; it could be used to fetch a user's
+///     // preferred locale from a database, for example.
+///     // See the baked fluent `custom_from_request.rs` example for an example of this.
+///     #[custom_from_request(true)]
+///
+///     // The struct to generate; you can change the name, the other syntax is required.
+///     pub struct MyLocalizer(_);
+/// }
 #[proc_macro]
 pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // parse input.
@@ -67,8 +91,8 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             (#locale, &[#(#sources)*])
         }
     });
-    let actix = if cfg!(feature = "with-actix") {
-        gen_actix(&ast.actix, name.clone())
+    let actix = if cfg!(feature = "with-actix") && !ast.custom_from_request {
+        gen_actix(name.clone())
     } else {
         quote! {}
     };
@@ -211,11 +235,8 @@ fn has_errors(path: &Path, source: String) -> bool {
     }
 }
 
-fn gen_actix(opts: &input::ActixOpts, name: Ident) -> proc_macro2::TokenStream {
-    if let Some(ref _loc) = opts.custom_user_locale {
-        unimplemented!()
-    } else {
-        quote! {
+fn gen_actix(name: Ident) -> proc_macro2::TokenStream {
+    quote! {
         impl ::actix_web::FromRequest for #name {
             type Error = ::actix_web::error::Error;
             type Future = ::std::result::Result<Self, Self::Error>;
@@ -231,7 +252,6 @@ fn gen_actix(opts: &input::ActixOpts, name: Ident) -> proc_macro2::TokenStream {
                     .unwrap_or("");
                 Ok(::baked_fluent::Localize::new(&[], Some(header)))
             }
-        }
         }
     }
 }

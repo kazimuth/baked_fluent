@@ -51,7 +51,6 @@ fn main() -> std::io::Result<()> {
 # english translations
 greeting = Hello { $name }! { $friends ->
     [one] You have a friend!
-    [zero] You have no friends yet 😞
    *[other] You have {$friends} friends.
 }
 ```
@@ -62,7 +61,6 @@ greeting = Hello { $name }! { $friends ->
 # traducciones a español
 greeting = ¡Hola, { $name }! { $friends ->
     [one] ¡Tienes un amigo!
-    [zero] Todavía no tienes amigos 😞
    *[other] Tienes {$friends} amigos.
 }
 ```
@@ -77,7 +75,7 @@ Hello, Jamie! You have 12 friends.
 $ curl -s -H 'Accept-Language: es' http://localhost:8080/Jamie/12
 ¡Hola, Jamie! Tienes 12 amigos.
 $ curl -s -H 'Accept-Language: es' http://localhost:8080/Jamie/0
-¡Hola, Jamie! Todavía no tienes amigos 😞
+¡Hola, Jamie! Tienes 0 amigos.
 $ curl -s -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8080/Jamie/1
 Hello, Jamie! You have 1 friend.
 ```

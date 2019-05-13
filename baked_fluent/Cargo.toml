@@ -34,5 +34,10 @@ harness = false
 name = "actix"
 required-features = ["with-actix"]
 
+[[example]]
+name = "custom_from_request"
+required-features = ["with-actix"]
+
+
 [package.metadata.docs.rs]
 features = ["full-nightly"]

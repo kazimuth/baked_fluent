@@ -1,30 +1,13 @@
 /// Input parser for the `impl_localize!` proc-macro.
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{bracketed, parenthesized, Ident, LitStr, Path, Token};
+use syn::{bracketed, parenthesized, Ident, LitBool, LitStr, Token};
 
-/// An invocation of impl_localize, of the form:
-///
-/// ```no_build
-/// impl_localize! {
-///     #[path("i18n")]
-///     #[default_locale = "en_US")]
-///     pub struct AppLocalizer(_);
-/// }
-/// ```
-///
-/// This creates a struct called `AppLocalizer` which implements the Askama `Localize` trait.
-///
-/// For more information, see the top-level documentation for Askama.
+/// An invocation of impl_localize
 pub struct ImplLocalize {
     pub name: Ident,
     pub path: LitStr,
     pub default_locale: LitStr,
-    pub actix: ActixOpts,
-}
-
-/// Customization for the "actix" framework.
-pub struct ActixOpts {
-    pub custom_user_locale: Option<Path>,
+    pub custom_from_request: bool,
 }
 
 impl Parse for ImplLocalize {
@@ -32,10 +15,7 @@ impl Parse for ImplLocalize {
         // parse #[thing(stuff)] options
         let mut path = None;
         let mut default_locale = None;
-        let actix = ActixOpts {
-            custom_user_locale: None,
-        };
-
+        let mut custom_from_request = false;
         loop {
             if !input.lookahead1().peek(Token![#]) {
                 break;
@@ -48,7 +28,9 @@ impl Parse for ImplLocalize {
             match &*ann_name.to_string() {
                 "path" => path = Some(Arg::<LitStr>::parse(&ann)?.value),
                 "default_locale" => default_locale = Some(Arg::<LitStr>::parse(&ann)?.value),
-                "actix" => unimplemented!(),
+                "custom_from_request" => {
+                    custom_from_request = Arg::<LitBool>::parse(&ann)?.value.value
+                }
                 _ => {
                     return Err(syn::parse::Error::new(
                         ann_name.span(),
@@ -82,7 +64,7 @@ impl Parse for ImplLocalize {
             name,
             path,
             default_locale,
-            actix,
+            custom_from_request,
         })
     }
 }
@@ -97,21 +79,5 @@ impl<T: Parse> Parse for Arg<T> {
         Ok(Arg {
             value: T::parse(&arg)?,
         })
-    }
-}
-
-/// A named argument to an ann, like in #[cfg(thing = "bees")]
-///                                           ^^^^^^^^^^^^^^ this bit
-pub struct NamedArg {
-    pub name: Ident,
-    pub value: LitStr,
-}
-
-impl Parse for NamedArg {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse::<Ident>()?;
-        input.parse::<Token![=]>()?;
-        let value = input.parse::<LitStr>()?;
-        Ok(NamedArg { name, value })
     }
 }
