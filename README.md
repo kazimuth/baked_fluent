@@ -6,29 +6,40 @@ A system for dead-easy i18n in rust. Bakes [Fluent](https://projectfluent.org) s
 
 ## Example usage (with `actix-web`)
 
+`Cargo.toml`:
+
+```toml
+# ...
+
+[dependencies]
+actix-web = "1.0.0-beta3"
+baked_fluent = { version = "0.1.0", features = ["with-actix"]}
+```
+
 `src/main.rs`:
 
 ```rust
-use actix_web::{web, App, HttpServer};
-
+use actix_web::{web, App, HttpServer, Result};
 use baked_fluent::{impl_localize, localize};
 
 // Create a struct called `Localizer` implementing `baked_fluent::Localize`
 impl_localize! {
     #[path("tests/i18n")]
     #[default_locale("en_US")]
-    #[actix]
     pub struct Localizer(_);
 }
 
-fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> String {
-    localize!(loc, greeting, name = &info.0[..], friends = info.1).unwrap()
+fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> Result<String> {
+    Ok(localize!(
+        loc,
+        greeting,
+        name = &info.0[..],
+        friends = info.1
+    )?)
 }
 
 fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(
-        web::resource("/{name}/{friend_count}/").to(index))
-    )
+    HttpServer::new(|| App::new().service(web::resource("/{name}/{friend_count}/").to(index)))
         .bind("localhost:8088")?
         .run()
 }

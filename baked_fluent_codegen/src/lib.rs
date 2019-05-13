@@ -67,11 +67,11 @@ pub fn impl_localize(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             (#locale, &[#(#sources)*])
         }
     });
-    let actix = ast
-        .actix
-        .as_ref()
-        .map(|a| gen_actix(a, name.clone()))
-        .unwrap_or(quote!());
+    let actix = if cfg!(feature = "with-actix") {
+        gen_actix(&ast.actix, name.clone())
+    } else {
+        quote! {}
+    };
 
     // generated code
     (quote! {

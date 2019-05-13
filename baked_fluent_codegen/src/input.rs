@@ -19,7 +19,7 @@ pub struct ImplLocalize {
     pub name: Ident,
     pub path: LitStr,
     pub default_locale: LitStr,
-    pub actix: Option<ActixOpts>,
+    pub actix: ActixOpts,
 }
 
 /// Customization for the "actix" framework.
@@ -32,7 +32,9 @@ impl Parse for ImplLocalize {
         // parse #[thing(stuff)] options
         let mut path = None;
         let mut default_locale = None;
-        let mut actix = None;
+        let actix = ActixOpts {
+            custom_user_locale: None,
+        };
 
         loop {
             if !input.lookahead1().peek(Token![#]) {
@@ -46,15 +48,7 @@ impl Parse for ImplLocalize {
             match &*ann_name.to_string() {
                 "path" => path = Some(Arg::<LitStr>::parse(&ann)?.value),
                 "default_locale" => default_locale = Some(Arg::<LitStr>::parse(&ann)?.value),
-                "actix" => {
-                    actix = Some(if input.lookahead1().peek(syn::token::Paren) {
-                        unimplemented!()
-                    } else {
-                        ActixOpts {
-                            custom_user_locale: None,
-                        }
-                    })
-                }
+                "actix" => unimplemented!(),
                 _ => {
                     return Err(syn::parse::Error::new(
                         ann_name.span(),
@@ -107,7 +101,7 @@ impl<T: Parse> Parse for Arg<T> {
 }
 
 /// A named argument to an ann, like in #[cfg(thing = "bees")]
-///                                                  ^^^^^^^^^^^^^^ this bit
+///                                           ^^^^^^^^^^^^^^ this bit
 pub struct NamedArg {
     pub name: Ident,
     pub value: LitStr,

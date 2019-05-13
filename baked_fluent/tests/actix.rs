@@ -1,4 +1,6 @@
-use actix_web::{http::StatusCode, test, web, App};
+#![cfg(feature = "with-actix")]
+
+use actix_web::{http::StatusCode, test, web, App, Result};
 
 use baked_fluent::{impl_localize, localize};
 
@@ -6,12 +8,16 @@ use baked_fluent::{impl_localize, localize};
 impl_localize! {
     #[path("tests/i18n")]
     #[default_locale("en_US")]
-    #[actix]
     pub struct Localizer(_);
 }
 
-fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> String {
-    localize!(loc, greeting, name = &info.0[..], friends = info.1).unwrap()
+fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> Result<String> {
+    Ok(localize!(
+        loc,
+        greeting,
+        name = &info.0[..],
+        friends = info.1
+    )?)
 }
 
 #[test]

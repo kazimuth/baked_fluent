@@ -4,6 +4,9 @@ edition = "2018"
 name = "baked_fluent_codegen"
 version = "0.1.0"
 
+[features]
+with-actix = []
+
 [lib]
 proc-macro = true
 

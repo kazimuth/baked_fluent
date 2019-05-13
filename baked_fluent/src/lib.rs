@@ -1,3 +1,4 @@
+pub mod integrations;
 pub mod runtime;
 
 /// `Localize` trait; can be included in templates to allow using the `localize` filter.
