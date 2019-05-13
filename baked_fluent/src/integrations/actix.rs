@@ -12,6 +12,8 @@
 //!
 //! // When with-actix is enabled, your Localize impl will automatically implement actix_web::FromRequest;
 //! // use it like so to create a localizer automatically.
+//! // By default, it is created from the Accept-Language header; to override this behavior, see the
+//! // custom_from_request baked_fluent example.
 //! fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> Result<String> {
 //!     Ok(localize!(
 //!         loc,
@@ -27,5 +29,6 @@
 //!         .run()
 //! }
 //! ```
+//!
 
 impl actix_web::ResponseError for super::super::Error {}
