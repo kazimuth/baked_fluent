@@ -61,13 +61,13 @@ In the terminal:
 ```sh
 $ cargo run &
 ...
-$ curl -H 'Accept-Language: en' http://localhost:8088/Jamie/12
+$ curl -s -H 'Accept-Language: en' http://localhost:8088/Jamie/12
 Hello, Jamie! You have 12 friends.
-$ curl -H 'Accept-Language: es' http://localhost:8088/Jamie/12
+$ curl -s -H 'Accept-Language: es' http://localhost:8088/Jamie/12
 ¡Hola, Jamie! Tienes 12 amigos.
-$ curl -H 'Accept-Language: es' http://localhost:8088/Jamie/0
+$ curl -s -H 'Accept-Language: es' http://localhost:8088/Jamie/0
 ¡Hola, Jamie! Todavía no tienes amigos 😞
-$ curl -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8088/Jamie/1
+$ curl -s -H 'Accept-Language: de_DE,de,en_UK,en_US,en' http://localhost:8088/Jamie/1
 Hello, Jamie! You have 1 friend.
 ```
 

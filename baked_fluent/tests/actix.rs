@@ -1,4 +1,4 @@
-use actix_web::{http, test, web, HttpMessage, HttpRequest, HttpResponse};
+use actix_web::{http::StatusCode, test, web, App};
 
 use baked_fluent::{impl_localize, localize};
 
@@ -14,16 +14,20 @@ fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> String {
     localize!(loc, greeting, name = &info.0[..], friends = info.1).unwrap()
 }
 
-/*
 #[test]
-fn test_accept_langauge() {
-    let resp = test::TestRequest::with_header("Accept-Language", "en_US")
-        .uri("http://localhost/Jamie/12")
-        .run(&index)
-        .unwrap();
-    let resp = test::block_on(index(req)).unwrap();
+fn actix() {
+    let mut app =
+        test::init_service(App::new().service(web::resource("/{name}/{friend_count}/").to(index)));
+
+    // Create request object
+    let req = test::TestRequest::with_uri("/Jamie/12/")
+        .header("Accept-Language", "es")
+        .to_request();
+
+    // Call application
+    let resp = test::call_service(&mut app, req);
     assert_eq!(resp.status(), StatusCode::OK);
-    assert_eq!(resp.status(), http::StatusCode::OK);
-    assert_eq!(resp.body(), "banana");
+    let body = &test::read_body(resp);
+    let body = std::str::from_utf8(body).unwrap();
+    assert_eq!(body, "¡Hola, Jamie! Tienes 12 amigos.");
 }
-*/
