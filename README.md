@@ -100,7 +100,31 @@ You can, however, use this crate to negotiate a locale chain. Simply create a `L
 
 #### Why isn't framework [Z] supported?
 
-There's a lot of web frameworks / templating libraries. If you want to improve support for one of them, make a PR! Also, the `Localize` API is simple enough that it shouldn't be hard to implement on your own.
+There's a lot of web frameworks / templating libraries. If you want to improve support for one of them, make a PR! Also, the `Localize` API is simple enough that it shouldn't be hard to just use it from your app.
+
+#### How do I add support for a framework?
+
+To add support for an imaginary web framework / templating library "xyz":
+
+- Fork this repo.
+- Add a feature "with-xyz" that brings in xyz as a dependency to baked_fluent.
+- Add "with-xyz" as a dependency to the "full" or the "full-nightly" baked_fluent feature, depending on
+  whether xyz requires nightly to compile.
+- Add a module `integrations::xyz`, and add a doc comment explaining how to use xyz with baked_fluent.
+  Make sure you've got working doctests (they should at least build.)
+- If necessary, add a feature "with-xyz" to baked_fluent_codegen, which should be automatically activated by the
+  baked_fluent with-xyz feature. Then generate whatever supporting code you need.
+- If necessary, add configuration options for xyz support in the form of an annotation in impl_localize.
+  (The parsing for these options should go in baked_fluent_codegen/src/input.rs).
+
+  ```rust
+  impl_localize! {
+      #[xyz(option_a = "bees", option_b = "global warming")]
+      struct Localizer(_);
+  }
+  ```
+
+- Open a PR!
 
 #### How fast is this crate?
 
