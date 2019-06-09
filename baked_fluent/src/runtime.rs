@@ -10,6 +10,8 @@ use fluent_bundle::{FluentBundle, FluentResource, FluentValue};
 use fluent_locale::{negotiate_languages, parse_accepted_languages, NegotiationStrategy};
 use std::collections::{HashMap, HashSet};
 
+use log::{info, warn};
+
 pub use lazy_static::lazy_static;
 
 use super::{Error, Result};
@@ -35,6 +37,8 @@ pub struct StaticParser<'a> {
 impl<'a> StaticParser<'a> {
     /// Create a StaticParser.
     pub fn new(resources: &'a Resources, default_locale: &'static str) -> StaticParser<'a> {
+        info!("preparing bundles for all locales");
+
         assert!(
             resources
                 .0
@@ -65,6 +69,7 @@ impl<'a> StaticParser<'a> {
         available.sort();
 
         let available_set = available.iter().cloned().collect();
+        info!("done, bundle count: {}", available.len());
 
         StaticParser {
             bundles,
@@ -142,11 +147,12 @@ impl<'a> StaticParser<'a> {
             // which we have to cope with
             let result = bundle.format(message, args);
 
-            if let Some((result, _errs)) = result {
+            if let Some((result, errs)) = result {
+                for err in errs {
+                    warn!("fluent localization error (ignored): {}", err);
+                }
                 write!(writer, "{}", result)?;
                 return Ok(());
-
-                // TODO: warn on errors here?
             }
         }
         // nowhere to fall back to
@@ -175,10 +181,12 @@ pub struct Resources(Vec<(&'static str, Vec<FluentResource>)>);
 impl Resources {
     /// Parse a list of sources into a list of resources.
     pub fn new(sources: Sources) -> Resources {
-        Resources(
+        info!("parsing embedded fluent sources");
+        let result = Resources(
             sources
                 .iter()
                 .map(|(locale, sources)| {
+                    info!("parsing locale: {}, {} sources", locale, sources.len());
                     (
                         *locale,
                         sources
@@ -191,7 +199,9 @@ impl Resources {
                     )
                 })
                 .collect(),
-        )
+        );
+        info!("done");
+        result
     }
 }
 
@@ -234,6 +244,8 @@ goodbye = Adiós.
 
     #[test]
     fn basic() -> Result<()> {
+        let _ = pretty_env_logger::try_init();
+
         let resources = Resources::new(SOURCES);
         let bundles = StaticParser::new(&resources, "en_US");
         let name = FluentValue::from("Jamie");
@@ -268,6 +280,8 @@ goodbye = Adiós.
 
     #[test]
     fn create_locale_chain() {
+        let _ = pretty_env_logger::try_init();
+
         let resources = Resources::new(SOURCES);
         let bundles = StaticParser::new(&resources, "en_US");
 

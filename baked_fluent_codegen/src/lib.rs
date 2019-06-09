@@ -21,7 +21,7 @@ macro_rules! err {
 
 /// The impl_localize macro.
 /// Generates a struct that implements `baked_fluent::Localize`, sort of like a custom derive
-/// except you don't get to see inside the struct ;)
+/// except you don't get to see inside the struct.
 ///
 /// Input syntax:
 /// ```

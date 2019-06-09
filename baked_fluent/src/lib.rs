@@ -1,3 +1,50 @@
+//! A library for easy serverside internationalization / localization using the
+//! [Fluent](https://projectfluent.org) i18n system to parse and apply translations.
+//!
+//! # Quickstart
+//! Create a folder structure at your project root, organized like so:
+//! - `i18n`
+//!   - `en_US`
+//!     - `greeting.ftl`
+//!   - `es_MX`
+//!     - `greeting.ftl`
+//!
+//! Add some localizations in [Fluent's `FTL` Syntax](https://projectfluent.org/fluent/guide/):
+//!
+//! `i18n/en_US/greeting.ftl`:
+//! ```txt
+//! hello = Hello, $name!
+//! age.tracker = You are $age_hours hours old.
+//! ```
+//! `i18n/es_MX/greeting.ftl`:
+//! ```txt
+//! hello = ¡Hola, $name!
+//! age.tracker = Tiene $age_hours horas.
+//! ```
+//!
+//! Call the `impl_localize!()` macro:
+//! ```
+//! # #[cfg(feature = "with-i18n")]
+//! # mod lmao_rustc {
+//! extern crate baked_fluent;
+//! use baked_fluent::{Localize, impl_localize};
+//!
+//! impl_localize! {
+//!     #[localize(path = "i18n", default_locale = "en_US")]
+//!     pub struct AppLocalizer(_);
+//! }
+//! # }
+//! ```
+//!
+//! This creates a struct called `AppLocalizer` which implements the askama `Localize` trait.
+//!
+//! This will bake translations you provide into the output executable, to ease
+//! deployment; all you need is one binary.
+//!
+//! TODO: To create an instance
+//!
+//! Now, you can use the `localize` and `localize_into` ma
+
 pub mod integrations;
 pub mod runtime;
 
@@ -5,9 +52,8 @@ pub mod runtime;
 /// Implementations are generally derived.
 pub trait Localize: Sized {
     // Implementation notes:
-    // All of the code that actually talks to fluent is in the `askama_shared::i18n::macro_impl` module.
-    // Codegen for `impl_localize!` is in `askama_derive::gen_impl_localize`.
-    // Codegen for the `localize` filter is in `askama_derive::generator`.
+    // All of the code that actually talks to fluent is in the `baked_fluent::runtime` module.
+    // Codegen for `impl_localize!` is in `baked_fluent_codegen`.
 
     /// Create a localizer.
     ///
@@ -65,6 +111,7 @@ macro_rules! localize_into {
     };
 }
 
+/// An error in localization.
 #[derive(Debug, Clone)]
 pub enum Error {
     NoTranslations {
@@ -143,6 +190,7 @@ mod tests {
     }
     #[test]
     fn localize_macro() -> Result<()> {
+        let _ = pretty_env_logger::try_init();
         let t = T;
         assert_eq!(
             localize!(t, bees.banana, x = 1, y = "hello", z = "there".to_string())?,
@@ -168,6 +216,7 @@ mod tests {
 
     #[test]
     fn ui() {
+        let _ = pretty_env_logger::try_init();
         let t = trybuild::TestCases::new();
 
         t.compile_fail("tests/ui/*.rs");

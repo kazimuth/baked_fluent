@@ -8,6 +8,8 @@ impl_localize! {
 
 #[test]
 fn init() {
+    let _ = pretty_env_logger::try_init();
+
     // default
     let loc = TestLocalizer::new(&[], None);
 

@@ -1,5 +1,5 @@
 //! Integrations with other frameworks.
-//! See each individual module for information on how to use that framework with baked_fluent.
+//! See each individual modules for information on how to use that framework with baked_fluent.
 
 #[cfg(feature = "with-actix")]
 pub mod actix;

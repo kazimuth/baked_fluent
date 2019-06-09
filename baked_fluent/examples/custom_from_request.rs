@@ -63,6 +63,7 @@ fn index((loc, info): (Localizer, web::Path<(String, isize)>)) -> Result<HttpRes
 }
 
 fn main() -> std::io::Result<()> {
+    pretty_env_logger::init();
     println!("Open http://localhost:8080/Jamie/12/ in your browser");
     HttpServer::new(|| App::new().service(web::resource("/{name}/{friend_count}/").to(index)))
         .bind("localhost:8080")?
