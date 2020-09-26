@@ -1,6 +1,6 @@
 # baked_fluent [![CircleCI](https://circleci.com/gh/kazimuth/baked_fluent.svg?style=svg)](https://circleci.com/gh/kazimuth/baked_fluent)
 
-**THIS CRATE IS NOT YET FUNCTIONAL.** (give it a few days until a public beta.)
+**THIS CRATE IS NOT FUNCTIONAL AND WILL NOT BE UPDATED.**
 
 A system for dead-easy i18n in rust. Bakes [Fluent](https://projectfluent.org) source files into executables and provides an easy API to use them. Intended for server-side use; provides easy integration with most [web frameworks](#web-frameworks) and [templating libraries](#templating-libraries).
 
